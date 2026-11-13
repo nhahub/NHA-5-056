@@ -1,20 +1,34 @@
 const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
+const securityMiddleware = require("./config/security");
+const corsMiddleware = require("./config/cors");
+
+const healthRoutes = require("./routes/health.routes");
+const apiRoutes = require("./routes/api.routes");
+const notFound = require("./middlewares/notFound");
+const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 
-app.use(helmet());
-
-app.use(cors());
-
+// ─── Security & Parsing ───────────────────────────────────────────────────────
+app.use(securityMiddleware);
+app.use(corsMiddleware);
 app.use(express.json());
 
-app.get("/health", (req, res) => {
+// ─── Root & Health Check ──────────────────────────────────────────────────────
+app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "TabibiGo Client API is running",
+    message: "TabibiGo Backend is Running!",
   });
 });
+
+app.use(healthRoutes);
+
+// ─── API Routes ───────────────────────────────────────────────────────────────
+app.use("/api", apiRoutes);
+
+// ─── 404 & Error Handling ─────────────────────────────────────────────────────
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;
