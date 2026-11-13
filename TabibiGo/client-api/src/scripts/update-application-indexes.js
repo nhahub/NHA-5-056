@@ -1,14 +1,12 @@
-
 require("dotenv").config();
 
 const mongoose = require("mongoose");
-const connectDB = require("./config/database");
-
-const ProviderApplication = require("./models/ProviderApplication");
+const connectDatabase = require("../config/database");
+const ProviderApplication = require("../modules/provider-application/models/provider-application.model");
 
 const updateIndexes = async () => {
   try {
-    await connectDB();
+    await connectDatabase();
 
     const collection = ProviderApplication.collection;
 
@@ -16,7 +14,6 @@ const updateIndexes = async () => {
     const indexes = await collection.indexes();
 
     console.log("Current ProviderApplication Indexes:");
-
     console.log(indexes);
 
     // Find the old unique index
@@ -29,7 +26,6 @@ const updateIndexes = async () => {
     // Remove only the old unique index
     if (oldIndex) {
       await collection.dropIndex("providerId_1");
-
       console.log("Old Unique Index Removed Successfully!");
     } else {
       console.log("Old Unique Index Not Found.");
@@ -39,10 +35,10 @@ const updateIndexes = async () => {
     await collection.createIndex(
       {
         providerId: 1,
-        createdAt: -1
+        createdAt: -1,
       },
       {
-        name: "providerId_1_createdAt_-1"
+        name: "providerId_1_createdAt_-1",
       }
     );
 
@@ -52,23 +48,25 @@ const updateIndexes = async () => {
     const updatedIndexes = await collection.indexes();
 
     console.log("\nUpdated Indexes:");
-
     updatedIndexes.forEach((index) => {
       console.log({
         name: index.name,
         fields: index.key,
-        unique: index.unique || false
+        unique: index.unique || false,
       });
     });
 
     console.log("\nIndex Update Completed!");
-
   } catch (error) {
     console.error("Index Update Failed:", error.message);
-
   } finally {
     await mongoose.disconnect();
   }
 };
 
-updateIndexes();
+if (require.main === module) {
+  updateIndexes();
+}
+
+module.exports = updateIndexes;
+
